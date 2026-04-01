@@ -10,6 +10,7 @@ def test_index_page_loads(client):
     assert response.status_code == 200
     assert "Research Paper Analyser" in response.text
     assert "Submit a Paper" in response.text
+    assert "Upload a PDF" in response.text
 
 
 def test_submit_paper_saves_analysis_and_redirects(client, session: Session, monkeypatch):
@@ -68,3 +69,39 @@ def test_saved_submission_is_rendered_on_homepage(client, session: Session):
     assert "Existing Review Sample" in response.text
     assert "Found a measurable improvement" in response.text
     assert "Needs larger-scale validation" in response.text
+
+
+def test_upload_prefills_form_after_classification(client, monkeypatch):
+    fake_processed = {
+        "filename": "sample.pdf",
+        "text": "Abstract Introduction Methods Results Conclusion References",
+        "title": "Uploaded Paper Title",
+        "abstract": "Uploaded abstract content that is long enough to be useful.",
+        "conclusion": "Uploaded conclusion content that is long enough to be useful.",
+    }
+    fake_review = {
+        "is_research_article": True,
+        "label": "Research article",
+        "confidence": "high",
+        "reason": "The document includes standard academic sections.",
+    }
+
+    def fake_process_pdf(self, filename: str, file_bytes: bytes):
+        return fake_processed
+
+    def fake_classify(self, document_text: str):
+        return fake_review
+
+    monkeypatch.setattr(main.DocumentProcessingService, "process_pdf", fake_process_pdf)
+    monkeypatch.setattr(main.DocumentClassificationService, "classify", fake_classify)
+
+    response = client.post(
+        "/upload",
+        files={"paper_file": ("sample.pdf", b"%PDF-1.4 fake", "application/pdf")},
+    )
+
+    assert response.status_code == 200
+    assert "Upload Review" in response.text
+    assert "Research article" in response.text
+    assert "Uploaded Paper Title" in response.text
+    assert "Uploaded abstract content that is long enough to be useful." in response.text

@@ -48,3 +48,21 @@ def build_gaps_task(agent, summary_file: Path):
         expected_output="A short bullet list of research gaps or future work opportunities.",
         agent=agent,
     )
+
+
+def build_research_classifier_task(agent, summary_file: Path):
+    return Task(
+        description=dedent(
+            f"""
+            Read the uploaded document text from `{summary_file}` using your available tools.
+            Decide whether this document is a research article.
+
+            Respond in exactly this format:
+            DECISION: research_article OR not_research_article
+            CONFIDENCE: low OR medium OR high
+            REASON: One concise sentence explaining the decision.
+            """
+        ).strip(),
+        expected_output="A 3-line decision block naming the classification, confidence, and reason.",
+        agent=agent,
+    )

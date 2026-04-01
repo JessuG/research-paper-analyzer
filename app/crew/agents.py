@@ -43,3 +43,17 @@ def build_gap_agent(llm, tools):
         llm=llm,
         verbose=False,
     )
+
+
+def build_research_classifier_agent(llm, tools):
+    return Agent(
+        role="Research Article Classifier",
+        goal="Determine whether the uploaded document is actually a research article.",
+        backstory=(
+            "You are skilled at identifying academic paper structure, including abstract, introduction, methods, "
+            "results, conclusion, and references. Use the available file tools before answering."
+        ),
+        tools=tools,
+        llm=llm,
+        verbose=False,
+    )

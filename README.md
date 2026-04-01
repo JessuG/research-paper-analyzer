@@ -9,6 +9,8 @@ You paste a paper title, abstract, and conclusion into a form. The app then:
 3. Saves the extracted methods, findings, and research gaps.
 4. Displays the saved result back on the home page.
 
+You can also upload a PDF. The app extracts text, checks whether it looks like a research article, and prefills the form so you can review it before submitting.
+
 ## Architecture
 
 ### Backend
@@ -35,6 +37,16 @@ The UI is intentionally simple:
 - one stylesheet at [`app/static/styles.css`](./app/static/styles.css)
 
 This keeps the learning focused on forms, server rendering, and data flow.
+
+### Upload-assisted workflow
+
+When a user uploads a PDF:
+
+- FastAPI receives the file upload
+- `pypdf` extracts the document text
+- a research-article classifier reviews the extracted text
+- the app prefills title, abstract, and conclusion when it can detect them
+- the user reviews the form and then submits the final analysis
 
 ## Project structure
 
@@ -157,8 +169,9 @@ If you want hands-on practice, walk through it in this order:
 1. [`app/main.py`](./app/main.py) to understand request handling and the form flow.
 2. [`app/models.py`](./app/models.py) and [`app/database.py`](./app/database.py) to understand persistence.
 3. `app/crew/agents.py`, `app/crew/tasks.py`, and `app/crew/crew_builder.py` to see how CrewAI agents, tasks, and tools are separated.
-4. [`app/templates/index.html`](./app/templates/index.html) to understand how server-rendered HTML displays database results.
-5. `Dockerfile` and `docker-compose.yml` to see how the app is containerized.
+4. [`app/document_processing.py`](./app/document_processing.py) to understand PDF extraction and section inference.
+5. [`app/templates/index.html`](./app/templates/index.html) to understand how server-rendered HTML displays database results.
+6. `Dockerfile` and `docker-compose.yml` to see how the app is containerized.
 
 ## Learning notes
 
@@ -196,5 +209,6 @@ Even though they all read the same input, they each produce a different lens on 
 - Add a details page for each paper using `/papers/{id}`
 - Add tags or paper categories
 - Add a status field like `pending`, `analyzed`, or `failed`
+- Store uploaded PDF metadata or extracted text for audit/debugging
 - Add unit tests for the analysis service and database flow
 - Switch from SQLite to PostgreSQL later for more realistic deployment practice

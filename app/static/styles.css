@@ -71,7 +71,7 @@ li {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.5rem;
   margin: 1.5rem 0 2rem;
 }
@@ -103,6 +103,10 @@ textarea {
   background: rgba(255, 255, 255, 0.92);
 }
 
+input[type="file"] {
+  padding: 0.7rem;
+}
+
 textarea {
   resize: vertical;
 }
@@ -126,6 +130,33 @@ button:hover {
 
 .learn-card ul {
   padding-left: 1.2rem;
+}
+
+.alert {
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.error {
+  background: #fdecea;
+  color: #8b241f;
+  border: 1px solid #f1b7b5;
+}
+
+.upload-review {
+  margin-top: 1rem;
+  border-radius: 18px;
+  padding: 1rem;
+  border: 1px solid var(--line);
+}
+
+.upload-review.success {
+  background: #eef8f0;
+}
+
+.upload-review.warning {
+  background: #fff4df;
 }
 
 .results {

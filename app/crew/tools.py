@@ -37,6 +37,14 @@ def build_paper_workspace(title: str, abstract: str, conclusion: str) -> PaperWo
     return PaperWorkspace(directory=temp_dir, root_path=root_path, summary_file=summary_file)
 
 
+def build_text_workspace(filename: str, content: str) -> PaperWorkspace:
+    temp_dir = TemporaryDirectory()
+    root_path = Path(temp_dir.name)
+    summary_file = root_path / filename
+    summary_file.write_text(content.strip(), encoding="utf-8")
+    return PaperWorkspace(directory=temp_dir, root_path=root_path, summary_file=summary_file)
+
+
 def get_crewai_tools(summary_file: Path, root_path: Path):
     if not FileReadTool or not DirectoryReadTool:
         return []

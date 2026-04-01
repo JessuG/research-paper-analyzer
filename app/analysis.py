@@ -67,3 +67,68 @@ class PaperAnalysisService:
     @staticmethod
     def _to_bullets(items: list[str]) -> str:
         return "\n".join(f"- {item}" for item in items)
+
+
+class DocumentClassificationService:
+    def __init__(self) -> None:
+        self.api_key = settings.openai_api_key.strip()
+
+    def classify(self, document_text: str) -> dict[str, str | bool]:
+        if self._can_use_crewai():
+            try:
+                result = self._classify_with_crewai(document_text)
+                parsed = self._parse_classifier_output(result)
+                if parsed:
+                    return parsed
+            except Exception:  # pragma: no cover
+                pass
+        return self._fallback_classification(document_text)
+
+    def _can_use_crewai(self) -> bool:
+        return bool(self.api_key and Agent and Crew and Task and LLM and DirectoryReadTool and FileReadTool)
+
+    def _classify_with_crewai(self, document_text: str) -> str:
+        from app.crew.crew_builder import run_research_article_classifier_crew
+
+        return run_research_article_classifier_crew(document_text=document_text)
+
+    def _parse_classifier_output(self, text: str) -> dict[str, str | bool] | None:
+        decision = ""
+        confidence = "medium"
+        reason = "The uploaded document was reviewed by the classifier agent."
+        for line in text.splitlines():
+            normalized = line.strip()
+            if normalized.lower().startswith("decision:"):
+                decision = normalized.split(":", 1)[1].strip().lower()
+            elif normalized.lower().startswith("confidence:"):
+                confidence = normalized.split(":", 1)[1].strip().lower()
+            elif normalized.lower().startswith("reason:"):
+                reason = normalized.split(":", 1)[1].strip()
+
+        if decision not in {"research_article", "not_research_article"}:
+            return None
+
+        return {
+            "is_research_article": decision == "research_article",
+            "label": "Research article" if decision == "research_article" else "Not a research article",
+            "confidence": confidence,
+            "reason": reason,
+        }
+
+    def _fallback_classification(self, document_text: str) -> dict[str, str | bool]:
+        text = document_text.lower()
+        signals = sum(
+            marker in text
+            for marker in ["abstract", "introduction", "method", "results", "conclusion", "references"]
+        )
+        is_research_article = signals >= 3 and len(document_text.split()) >= 250
+        return {
+            "is_research_article": is_research_article,
+            "label": "Research article" if is_research_article else "Not a research article",
+            "confidence": "medium" if is_research_article else "low",
+            "reason": (
+                "The document includes multiple common research-paper sections."
+                if is_research_article
+                else "The document does not show enough research-paper structure yet."
+            ),
+        }

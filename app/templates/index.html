@@ -13,24 +13,48 @@
           <p class="eyebrow">FastAPI + CrewAI Learning Project</p>
           <h1>{{ app_name }}</h1>
           <p class="lead">
-            Paste a paper title, abstract, and conclusion. The submission is saved in SQLite,
-            then three CrewAI agents extract methods, findings, and research gaps.
+            Paste a paper title, abstract, and conclusion, or upload a PDF to prefill the form.
+            The submission is saved in SQLite, then CrewAI analyzes methods, findings, and research gaps.
           </p>
         </div>
       </section>
 
       <section class="grid">
+        <article class="card upload-card">
+          <h2>Upload a PDF</h2>
+          <form method="post" action="/upload" enctype="multipart/form-data" class="paper-form">
+            <label for="paper_file">Research Paper PDF</label>
+            <input id="paper_file" name="paper_file" type="file" accept=".pdf,application/pdf" required />
+            <button type="submit">Upload and Inspect</button>
+          </form>
+
+          {% if upload_error %}
+            <p class="alert error">{{ upload_error }}</p>
+          {% endif %}
+
+          {% if upload_review %}
+            <div class="upload-review {{ 'success' if upload_review.is_research_article else 'warning' }}">
+              <h3>Upload Review</h3>
+              <p><strong>File:</strong> {{ upload_review.filename }}</p>
+              <p><strong>Classification:</strong> {{ upload_review.label }}</p>
+              <p><strong>Confidence:</strong> {{ upload_review.confidence }}</p>
+              <p>{{ upload_review.reason }}</p>
+              <p class="note">The form has been prefilled below. Review the extracted sections before submitting.</p>
+            </div>
+          {% endif %}
+        </article>
+
         <article class="card form-card">
           <h2>Submit a Paper</h2>
           <form method="post" action="/submit" class="paper-form">
             <label for="title">Title</label>
-            <input id="title" name="title" type="text" required minlength="3" maxlength="255" />
+            <input id="title" name="title" type="text" required minlength="3" maxlength="255" value="{{ form_data.title }}" />
 
             <label for="abstract">Abstract</label>
-            <textarea id="abstract" name="abstract" rows="10" required minlength="30"></textarea>
+            <textarea id="abstract" name="abstract" rows="10" required minlength="30">{{ form_data.abstract }}</textarea>
 
             <label for="conclusion">Conclusion</label>
-            <textarea id="conclusion" name="conclusion" rows="8" required minlength="20"></textarea>
+            <textarea id="conclusion" name="conclusion" rows="8" required minlength="20">{{ form_data.conclusion }}</textarea>
 
             <button type="submit">Analyze Paper</button>
           </form>
@@ -40,13 +64,15 @@
           <h2>What You’re Practicing</h2>
           <ul>
             <li>Handling HTML forms with FastAPI and Jinja templates</li>
+            <li>Accepting and parsing uploaded PDFs on the backend</li>
+            <li>Classifying whether a document looks like a research article</li>
             <li>Saving structured records with SQLAlchemy and SQLite</li>
             <li>Coordinating specialized CrewAI agents</li>
             <li>Packaging the full app with Docker and docker-compose</li>
           </ul>
           <p class="note">
             If your OpenAI key is missing, the app still stores the paper and shows a placeholder
-            analysis so the rest of the flow keeps working.
+            analysis so the rest of the flow keeps working. The upload review is also designed to degrade gracefully.
           </p>
         </article>
       </section>
