@@ -1,0 +1,58 @@
+Research Paper Analyser Flow
+
+1. Browser
+   User opens the page and fills the form with:
+   - title
+   - abstract
+   - conclusion
+
+2. FastAPI
+   `GET /` renders the page.
+   `POST /submit` receives the form data.
+
+3. Validation
+   `app/schemas.py` validates title, abstract, and conclusion lengths.
+
+4. Analysis Service
+   `app/analysis.py` decides:
+   - use CrewAI if configured
+   - otherwise use fallback output
+
+5. CrewAI Package
+   `app/crew/crew_builder.py` assembles the workflow.
+   `app/crew/tools.py` creates `paper_summary.txt`.
+   `app/crew/agents.py` defines 3 agents.
+   `app/crew/tasks.py` defines 3 tasks.
+
+6. CrewAI Tools
+   Agents use CrewAI file tools to read the summary file.
+
+7. OpenAI
+   GPT-4o generates:
+   - methodology
+   - findings
+   - research gaps
+
+8. Database
+   SQLAlchemy saves one SQLite row containing:
+   - original paper fields
+   - AI outputs
+   - timestamp
+
+9. Redirect + Render
+   FastAPI redirects back to `/`.
+   Jinja renders the updated saved analyses list.
+
+10. Fallback Path
+   If OpenAI or CrewAI is unavailable, fallback bullets are returned so the app still works.
+
+11. Runtime
+   Docker provides the Python runtime and dependency environment.
+   `.env` provides configuration.
+
+12. Review Safety
+   Tests verify:
+   - home page loads
+   - submission saves
+   - saved output renders
+   - fallback output shape works
